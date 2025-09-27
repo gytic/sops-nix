@@ -57,17 +57,6 @@ let
       };
       options = {
 
-        skipActivation = lib.mkOption {
-          description = ''
-            Skipp all activation processes.
-
-            That way the user has the handle the activation himself.
-          '';
-          type = lib.types.bool;
-          default = false;
-          example = true;
-        };
-
         name = lib.mkOption {
           type = lib.types.str;
           default = config._module.args.name;
@@ -213,6 +202,17 @@ in
       description = ''
         Path where the latest secrets are mounted to.
       '';
+    };
+
+    skipActivation = lib.mkOption {
+      description = ''
+        Skipp all activation processes.
+
+        That way the user has the handle the activation himself.
+      '';
+      type = lib.types.bool;
+      default = false;
+      example = true;
     };
 
     defaultSopsFile = lib.mkOption {
