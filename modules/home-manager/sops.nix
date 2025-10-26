@@ -374,7 +374,19 @@ in
         Environment = builtins.concatStringsSep " " (
           lib.mapAttrsToList (name: value: "'${name}=${value}'") cfg.environment
         );
+        RemainAfterExit = true;
         ExecStart = script;
+        ExecStop =
+          pkgs.writeShellApplication {
+            name = "deactivate-sops";
+            text = ''
+              _cfgMount="${cfg.defaultSecretsMountPoint}"
+              mountPoint=''${_cfgMount/\%r/$XDG_RUNTIME_DIR}
+              rm -rf "$mountPoint"
+              echo "Unmounted $mountPoint"
+            '';
+          }
+          |> lib.getExe;
       };
       Install.WantedBy =
         if cfg.skipActivation then
