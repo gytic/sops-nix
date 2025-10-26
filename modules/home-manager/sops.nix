@@ -147,6 +147,18 @@ in
       '';
     };
 
+    skipActivation = lib.mkOption {
+      description = ''
+        Skip all activation processes
+
+        That way the user has to handle the activation himself via
+        systemctl --user start sops-nix
+      '';
+      type = lib.types.bool;
+      default = false;
+      example = true;
+    };
+
     defaultSopsFile = lib.mkOption {
       type = lib.types.path;
       description = ''
@@ -365,7 +377,12 @@ in
         ExecStart = script;
       };
       Install.WantedBy =
-        if cfg.gnupg.home != null then [ "graphical-session-pre.target" ] else [ "default.target" ];
+        if cfg.skipActivation then
+          [ ]
+        else if cfg.gnupg.home != null then
+          [ "graphical-session-pre.target" ]
+        else
+          [ "default.target" ];
     };
 
     # Darwin: load secrets once on login
@@ -410,7 +427,7 @@ in
           '';
 
       in
-      {
+      lib.mkIf (!cfg.skipActivation) {
         sops-nix = if pkgs.stdenv.isLinux then linux else darwin;
       };
   };
