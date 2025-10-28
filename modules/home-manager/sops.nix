@@ -129,6 +129,7 @@ let
       ''
       + ''
         ${sops-install-secrets}/bin/sops-install-secrets -ignore-passwd ${manifest}
+        ${cfg.onActivation}
       ''
     )
   );
@@ -157,6 +158,46 @@ in
       type = lib.types.bool;
       default = false;
       example = true;
+    };
+
+    onActivation = lib.mkOption {
+      description = ''
+        Script to run after activation
+      '';
+      type = lib.types.nullOr lib.types.str;
+      apply =
+        text:
+        if (text == null) then
+          ""
+        else
+          lib.getExe (
+            pkgs.writeShellApplication {
+              name = "sops-activation-hook";
+              inherit text;
+            }
+          );
+      default = null;
+      example = "echo hello";
+    };
+
+    onDeactivation = lib.mkOption {
+      description = ''
+        Script to run after deactivation
+      '';
+      type = lib.types.nullOr lib.types.str;
+      apply =
+        text:
+        if (text == null) then
+          ""
+        else
+          lib.getExe (
+            pkgs.writeShellApplication {
+              name = "sops-deactivation-hook";
+              inherit text;
+            }
+          );
+      default = null;
+      example = "echo hello";
     };
 
     defaultSopsFile = lib.mkOption {
@@ -384,6 +425,7 @@ in
               mountPoint=''${_cfgMount/\%r/$XDG_RUNTIME_DIR}
               rm -rf "$mountPoint"
               echo "Unmounted $mountPoint"
+              ${cfg.onDeactivation}
             '';
           }
           |> lib.getExe;
